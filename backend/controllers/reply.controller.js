@@ -1,3 +1,5 @@
+//reply.controller.js
+
 import { asyncHandler } from "../middlewares/asyncHandler.middleware.js";
 import ErrorHandler from "../middlewares/error.middleware.js";
 import { Reply } from "../models/reply.model.js";
@@ -46,8 +48,11 @@ const createReply = asyncHandler(async (req, res, next) => {
     // Populate author details
     await reply.populate('author', 'fullName email avatar role');
 
-    // Update post's lastActivity
-    await Post.findByIdAndUpdate(postId, { lastActivity: new Date() });
+    // Update post's lastActivity and increment replyCount
+    await Post.findByIdAndUpdate(postId, { 
+        lastActivity: new Date(),
+        $inc: { replyCount: 1 }
+    });
 
     res.status(201).json({
         success: true,
@@ -272,8 +277,11 @@ const deleteReply = asyncHandler(async (req, res, next) => {
     reply.deletedBy = req.user._id;
     await reply.save();
 
-    // Update post's lastActivity
-    await Post.findByIdAndUpdate(reply.post, { lastActivity: new Date() });
+    // Update post's lastActivity and decrement replyCount
+    await Post.findByIdAndUpdate(reply.post, { 
+        lastActivity: new Date(),
+        $inc: { replyCount: -1 }
+    });
 
     res.status(200).json({
         success: true,
